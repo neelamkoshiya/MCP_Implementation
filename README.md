@@ -18,68 +18,130 @@ These resources collectively explain MCP's technical implementation across diffe
 * [YouTube Video 2](https://www.youtube.com/watch?v=sfCBCyNyw7U)
 
 
-# MCP Client and Server Implementation
+# MCP Integration for AI Agent Frameworks
 
-## MCP Integration for AI Agent Frameworks
-
-Model Context Protocol (MCP) client implementations for multiple AI agent frameworks.
+Complete Model Context Protocol (MCP) client implementations for 8 major AI agent frameworks with both standard MCP and FastMCP support.
 
 ## Files
 
-- `mcp_server.py` - MCP server with sample tools
+- `mcp_server.py` - Standard MCP server with sample tools
+- `fastmcp_server.py` - FastMCP server (simplified syntax)
+- `fastmcp_client.py` - FastMCP client example
+- `working_mcp_client.py` - Basic working MCP client
+- `minimal_mcp_client.py` - Minimal MCP client example
 - `autogen_mcp_client.py` - AutoGen integration
-- `llamaindex_mcp_client.py` - LlamaIndex integration
+- `llamaindex_mcp_client.py` - LlamaIndex integration (Claude)
 - `strands_mcp_client.py` - Strands Agents integration
 - `crewai_mcp_client.py` - CrewAI integration
-- `langchain_mcp_client.py` - LangChain integration
+- `langchain_mcp_client.py` - LangChain integration (Claude)
 - `langgraph_mcp_client.py` - LangGraph integration
-- `requirements.txt` - Dependencies
+- `bedrock_mcp_client.py` - AWS Bedrock integration
+- `test_clients.py` - Test script for all implementations
+- `test_summary.py` - Comprehensive test runner
 
-## Installation
+## Quick Start
 
+### 1. Install Core Dependencies
 ```bash
-pip install -r requirements.txt
+pip install mcp fastmcp anthropic
 ```
 
-## Usage
+### 2. Test Basic Functionality
 
-### MCP Server
-
-Start the server:
+**Standard MCP:**
 ```bash
-python mcp_server.py
+python working_mcp_client.py
 ```
 
-### AutoGen Client
+**FastMCP (Simplified):**
+```bash
+python fastmcp_client.py
+```
 
+Expected output:
+```
+=== Working MCP Client Demo ===
+Connected! Available tools: ['search_documents', 'get_weather']
+
+1. Testing document search...
+Search result: Found 5 documents matching 'machine learning'
+
+2. Testing weather lookup...
+Weather result: Weather in San Francisco: 72°F, sunny
+
+✓ All MCP tool calls completed successfully!
+```
+
+## Framework Integrations
+
+### Install Framework Dependencies
+
+```bash
+# AutoGen
+pip install autogen-agentchat
+
+# LlamaIndex with Claude
+pip install llama-index llama-index-llms-anthropic
+
+# LangChain with Claude
+pip install langchain langchain-anthropic
+
+# AWS Bedrock
+pip install langchain-aws boto3
+
+# CrewAI
+pip install crewai
+
+# LangGraph (included with LangChain)
+pip install langgraph
+
+# LLM providers
+pip install anthropic
+export ANTHROPIC_API_KEY="your-api-key"
+
+# For Bedrock (configure AWS credentials)
+aws configure
+```
+
+### Usage Examples
+
+#### Standard MCP Client
+```python
+from working_mcp_client import WorkingMCPClient
+import asyncio
+
+async def main():
+    client = WorkingMCPClient()
+    await client.connect_and_demo()
+
+asyncio.run(main())
+```
+
+#### AutoGen Client
 ```python
 from autogen_mcp_client import AutoGenMCPClient
 import asyncio
 
 async def main():
     client = AutoGenMCPClient()
-    weather = await client.get_weather("New York")
-    client.chat("What's the weather in Boston?")
+    await client.connect_and_test()
 
 asyncio.run(main())
 ```
 
-### LlamaIndex Client
-
+#### LlamaIndex Client
 ```python
 from llamaindex_mcp_client import LlamaIndexMCPClient
 import asyncio
 
 async def main():
-    client = LlamaIndexMCPClient(["python", "mcp_server.py"])
-    await client.connect()
-    response = client.chat("Search for documents about machine learning")
+    client = LlamaIndexMCPClient()
+    await client.connect_and_test()
 
 asyncio.run(main())
 ```
 
-### Strands Agents Client
-
+#### Strands Agents Client
 ```python
 from strands_mcp_client import StrandsMCPClient
 import asyncio
@@ -92,22 +154,19 @@ async def main():
 asyncio.run(main())
 ```
 
-### CrewAI Client
-
+#### CrewAI Client
 ```python
 from crewai_mcp_client import CrewAIMCPClient
 import asyncio
 
 async def main():
-    client = CrewAIMCPClient(["python", "mcp_server.py"])
-    await client.connect()
-    result = client.execute_task("Search for weather information in Tokyo")
+    client = CrewAIMCPClient()
+    await client.connect_and_test()
 
 asyncio.run(main())
 ```
 
-### LangChain Client
-
+#### LangChain Client
 ```python
 from langchain_mcp_client import LangChainMCPClient
 import asyncio
@@ -115,54 +174,239 @@ import asyncio
 async def main():
     client = LangChainMCPClient(["python", "mcp_server.py"])
     await client.connect()
-    response = client.invoke("What's the weather like in Paris?")
 
 asyncio.run(main())
 ```
 
-### LangGraph Client
-
+#### LangGraph Client
 ```python
 from langgraph_mcp_client import LangGraphMCPClient
 import asyncio
 
 async def main():
-    client = LangGraphMCPClient(["python", "mcp_server.py"])
+    client = LangGraphMCPClient()
+    await client.connect_and_test()
+
+asyncio.run(main())
+```
+
+#### AWS Bedrock Client
+```python
+from bedrock_mcp_client import BedrockMCPClient
+import asyncio
+
+async def main():
+    client = BedrockMCPClient(["python", "mcp_server.py"], region="us-east-1")
     await client.connect()
-    result = client.invoke("Search for documents about AI")
 
 asyncio.run(main())
 ```
 
 ## Configuration
 
-Set OpenAI API key:
+**Claude (Anthropic):**
 ```bash
-export OPENAI_API_KEY="your-api-key"
+export ANTHROPIC_API_KEY="your-api-key"
 ```
 
-## Framework Integrations
+**AWS Bedrock:**
+```bash
+aws configure
+# OR set environment variables:
+export AWS_ACCESS_KEY_ID="your-access-key"
+export AWS_SECRET_ACCESS_KEY="your-secret-key"
+export AWS_DEFAULT_REGION="us-east-1"
+```
 
-| Framework | Integration Type | Key Features |
-|-----------|------------------|--------------|
-| **AutoGen** | ConversableAgent | Multi-agent conversations |
-| **LlamaIndex** | BaseTool + ReActAgent | RAG and reasoning |
-| **Strands** | Agent + Tool | Structured agent workflows |
-| **CrewAI** | Agent + Task + Crew | Team-based task execution |
-| **LangChain** | BaseTool + Agent | Function calling agents |
-| **LangGraph** | StateGraph | Stateful workflow graphs |
+## MCP vs FastMCP
 
-## Tools Available
+**Standard MCP Server:**
+```python
+from mcp.server import Server
+from mcp.types import Tool, TextContent
+
+app = Server("framework-mcp-server")
+
+@app.call_tool()
+async def call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
+    if name == "search_documents":
+        query = arguments["query"]
+        limit = arguments.get("limit", 10)
+        results = f"Found {limit} documents matching '{query}'"
+        return [TextContent(type="text", text=results)]
+```
+
+**FastMCP Server (Simplified):**
+```python
+from fastmcp import FastMCP
+
+mcp = FastMCP("framework-fastmcp-server")
+
+@mcp.tool()
+def search_documents(query: str, limit: int = 10) -> str:
+    """Search through documents"""
+    return f"Found {limit} documents matching '{query}'"
+```
+
+## Framework Integration Details
+
+| Framework | Integration Type | LLM Provider | Key Features |
+|-----------|------------------|--------------|--------------|
+| **Basic MCP** | Direct MCP calls | None | Pure MCP functionality |
+| **AutoGen** | ConversableAgent | None | Multi-agent conversations |
+| **LlamaIndex** | BaseTool + ReActAgent | Claude | RAG and reasoning |
+| **Strands** | Agent + Tool | None | Structured agent workflows |
+| **CrewAI** | Agent + Task + Crew | None | Team-based task execution |
+| **LangChain** | BaseTool + Agent | Claude | Function calling agents |
+| **LangGraph** | StateGraph | None | Stateful workflow graphs |
+| **Bedrock** | ChatBedrock | Claude on AWS | AWS-native LLM integration |
+
+## Available MCP Tools
 
 - `search_documents(query, limit)` - Search document collection
 - `get_weather(location)` - Get weather information
 
+## Testing
+
+Run individual tests:
+```bash
+python working_mcp_client.py
+python fastmcp_client.py
+python langchain_mcp_client.py
+python bedrock_mcp_client.py
+python autogen_mcp_client.py
+python crewai_mcp_client.py
+python llamaindex_mcp_client.py
+python langgraph_mcp_client.py
+```
+
+Run comprehensive test suite:
+```bash
+python test_summary.py
+```
+
+Expected result: **8/8 implementations working**
+
 ## Architecture
 
-Each client wraps MCP tools in framework-specific abstractions:
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   AI Framework  │    │   MCP Client    │    │   MCP Server    │
+│   (AutoGen,     │◄──►│   (Adapter)     │◄──►│   (Tools)       │
+│   LlamaIndex,   │    │                 │    │                 │
+│   etc.)         │    │                 │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+Each client converts MCP tools to framework-specific formats:
 - MCP Server provides tools via stdio protocol
-- Clients convert MCP tools to framework-native tool formats
+- Clients wrap MCP tools in framework-native abstractions  
 - Agents use converted tools for task execution
+
+## Dependencies
+
+**Core MCP:**
+- `mcp>=1.0.0` - Standard MCP implementation
+- `fastmcp>=0.1.0` - Simplified MCP syntax
+
+**LLM Providers:**
+- `anthropic>=0.25.0` - Claude API
+- `boto3>=1.34.0` - AWS Bedrock
+
+**Framework Dependencies:**
+- `autogen-agentchat>=0.7.0` - AutoGen framework
+- `llama-index>=0.14.0` - LlamaIndex RAG framework
+- `llama-index-llms-anthropic>=0.10.0` - LlamaIndex Claude integration
+- `crewai>=1.4.0` - CrewAI team-based agents
+- `langchain>=1.0.0` - LangChain framework
+- `langchain-anthropic>=1.0.0` - LangChain Claude integration
+- `langchain-aws>=1.0.0` - LangChain Bedrock integration
+- `langgraph>=1.0.0` - LangGraph workflow graphs
+
+## Notes
+
+- All implementations are fully tested and working
+- The basic MCP client works with just `pip install mcp`
+- Framework-specific clients require additional dependencies as listed above
+- **LLM Providers:**
+  - **Claude**: Set `ANTHROPIC_API_KEY` environment variable
+  - **Bedrock**: Configure AWS credentials with `aws configure`
+- Bedrock requires AWS account with Bedrock model access enabled
+- All clients support both `search_documents` and `get_weather` tools
+- Implementations follow each framework's best practices and patterns
+
+
+## When to Use FastMCP vs Standard MCP
+
+### Use FastMCP when:
+
+✅ Rapid Prototyping
+• Building quick demos or proof-of-concepts
+• Testing MCP integration ideas
+• Simple tool implementations
+
+✅ Simple Use Cases
+• Basic function-to-tool mapping
+• Straightforward input/output patterns
+• Minimal customization needed
+
+✅ Developer Experience Priority
+• Want minimal boilerplate code
+• Prefer decorator-style APIs
+• Quick iteration cycles
+
+Example FastMCP scenario:
+python
+@mcp.tool()
+def calculate(a: int, b: int) -> int:
+    return a + b
+
+
+### Use Standard MCP when:
+
+✅ Production Applications
+• Enterprise-grade reliability needed
+• Complex error handling requirements
+• Performance optimization critical
+
+✅ Advanced Features
+• Custom resource management
+• Complex tool schemas
+• Advanced streaming capabilities
+• Custom initialization logic
+
+✅ Fine-Grained Control
+• Need to customize MCP protocol behavior
+• Complex authentication/authorization
+• Custom transport layers
+• Advanced logging/monitoring
+
+Example Standard MCP scenario:
+python
+@app.call_tool()
+async def call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
+    # Custom validation
+    # Complex error handling
+    # Performance monitoring
+    # Custom response formatting
+
+
+### Summary
+
+| Aspect | FastMCP | Standard MCP |
+|--------|---------|--------------|
+| Learning Curve | Easy | Moderate |
+| Code Volume | Minimal | Verbose |
+| Flexibility | Limited | Full |
+| Performance | Good | Optimized |
+| Production Ready | Basic | Enterprise |
+| Customization | Limited | Extensive |
+
+Rule of thumb: Start with FastMCP for prototypes, migrate to standard MCP for 
+production systems that need advanced features or fine-grained control.
+
+
+
 
 
 

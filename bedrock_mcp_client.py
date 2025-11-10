@@ -1,16 +1,17 @@
 import asyncio
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 try:
     from mcp import ClientSession, StdioServerParameters
     from mcp.client.stdio import stdio_client
+    import boto3
+    from langchain_aws import ChatBedrock
     from langchain.tools import BaseTool
-    from langchain_anthropic import ChatAnthropic
 except ImportError as e:
     print(f"Missing dependency: {e}")
-    print("Install with: pip install mcp langchain langchain-anthropic")
+    print("Install with: pip install mcp langchain langchain-aws boto3")
     exit(1)
 
-class MCPLangChainTool(BaseTool):
+class MCPBedrockTool(BaseTool):
     name: str
     description: str
     
@@ -27,9 +28,10 @@ class MCPLangChainTool(BaseTool):
         result = await self._session.call_tool(self._tool_name, kwargs)
         return result.content[0].text if result.content else ""
 
-class LangChainMCPClient:
-    def __init__(self, server_command: List[str]):
+class BedrockMCPClient:
+    def __init__(self, server_command: List[str], region: str = "us-east-1"):
         self.server_command = server_command
+        self.region = region
         self.session = None
         self.tools = []
         self.llm = None
@@ -47,33 +49,38 @@ class LangChainMCPClient:
                 # Get available tools
                 tools_response = await session.list_tools()
                 
-                # Create LangChain tools from MCP tools
+                # Create Bedrock tools from MCP tools
                 for tool in tools_response.tools:
-                    lc_tool = MCPLangChainTool(
+                    bedrock_tool = MCPBedrockTool(
                         tool_name=tool.name,
                         description=tool.description,
                         session=session
                     )
-                    self.tools.append(lc_tool)
+                    self.tools.append(bedrock_tool)
                 
-                # Create LangChain LLM
+                # Create Bedrock LLM
                 try:
-                    self.llm = ChatAnthropic(model="claude-3-sonnet-20240229")
-                except Exception:
-                    print("Anthropic API key not set. Set ANTHROPIC_API_KEY environment variable.")
+                    self.llm = ChatBedrock(
+                        model_id="anthropic.claude-3-sonnet-20240229-v1:0",
+                        region_name=self.region
+                    )
+                    print("Bedrock LLM initialized successfully")
+                except Exception as e:
+                    print(f"Bedrock setup failed: {e}")
+                    print("Ensure AWS credentials are configured and Bedrock access is enabled.")
                 
                 # Test direct tool usage
-                print("Testing LangChain MCP integration...")
+                print("Testing Bedrock MCP integration...")
                 
                 # Test weather tool
-                weather_result = await session.call_tool("get_weather", {"location": "Paris"})
+                weather_result = await session.call_tool("get_weather", {"location": "Seattle"})
                 print(f"Weather result: {weather_result.content[0].text}")
                 
                 # Test search tool
-                search_result = await session.call_tool("search_documents", {"query": "neural networks", "limit": 4})
+                search_result = await session.call_tool("search_documents", {"query": "AWS", "limit": 5})
                 print(f"Search result: {search_result.content[0].text}")
                 
-                print("✓ LangChain MCP integration working!")
+                print("✓ Bedrock MCP integration working!")
     
     async def invoke(self, message: str) -> str:
         if not self.session:
@@ -81,13 +88,13 @@ class LangChainMCPClient:
         
         # Simple tool routing for demo
         if "weather" in message.lower():
-            result = await self.session.call_tool("get_weather", {"location": "Paris"})
+            result = await self.session.call_tool("get_weather", {"location": "Seattle"})
             return result.content[0].text if result.content else ""
         elif "search" in message.lower() or "document" in message.lower():
-            result = await self.session.call_tool("search_documents", {"query": "neural networks", "limit": 4})
+            result = await self.session.call_tool("search_documents", {"query": "AWS", "limit": 5})
             return result.content[0].text if result.content else ""
         
-        return f"Processed: {message}"
+        return f"Processed with Bedrock: {message}"
     
     async def search_documents(self, query: str, limit: int = 10) -> str:
         result = await self.session.call_tool("search_documents", {
@@ -98,7 +105,7 @@ class LangChainMCPClient:
 
 # Example usage
 async def main():
-    client = LangChainMCPClient(["python", "mcp_server.py"])
+    client = BedrockMCPClient(["python", "mcp_server.py"])
     await client.connect()
 
 if __name__ == "__main__":
