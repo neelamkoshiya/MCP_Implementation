@@ -41,9 +41,10 @@ Complete Model Context Protocol (MCP) client implementations for 8 major AI agen
 
 ## Quick Start
 
-### 1. Install Core Dependencies
+### 1. Install All Dependencies
 ```bash
-pip install mcp fastmcp anthropic
+# Install all dependencies at once
+pip install -r requirements.txt
 ```
 
 ### 2. Test Basic Functionality
