@@ -22,6 +22,126 @@ These resources collectively explain MCP's technical implementation across diffe
 
 Complete Model Context Protocol (MCP) client implementations for 8 major AI agent frameworks with both standard MCP and FastMCP support.
 
+## Architecture
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   AI Framework  │    │   MCP Client    │    │   MCP Server    │
+│   (AutoGen,     │◄──►│   (Adapter)     │◄──►│   (Tools)       │
+│   LlamaIndex,   │    │                 │    │                 │
+│   etc.)         │    │                 │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+Each client converts MCP tools to framework-specific formats:
+- MCP Server provides tools via stdio protocol
+- Clients wrap MCP tools in framework-native abstractions  
+- Agents use converted tools for task execution
+
+## Local vs Remote MCP server
+
+Local MCP servers (like our implementations) run as separate processes on the 
+same machine, communicating via stdio transport, which provides simplicity, 
+security through process isolation, and zero network configuration while being 
+ideal for development, testing, and single-machine deployments.
+
+![image](localandremote.png)
+
+
+Remote MCP 
+servers operate over network protocols like HTTP/HTTPS or WebSocket, enabling 
+distributed architectures where multiple clients can access centralized tools, 
+shared resources, and cloud-based services, but require additional complexity 
+for authentication, network security, load balancing, and error handling - 
+making them suitable for production environments, multi-user systems, and 
+enterprise deployments where tools need to be shared across teams or integrated 
+with external APIs and databases.
+
+Difference between them can be summarized as follows:
+
+![image](localvsremote.png)
+
+## JSON-RPC 2.0 Protocol
+
+JSON-RPC 2.0 is a stateless, lightweight remote procedure call protocol that 
+uses JSON (JavaScript Object Notation) for data exchange, serving as the 
+foundational communication layer for MCP (Model Context Protocol). The protocol 
+defines a simple request-response pattern where clients send method calls with 
+parameters as JSON objects containing jsonrpc: "2.0", method, params, and id 
+fields, while servers respond with matching id and either result (for success) 
+or error (for failures), enabling seamless bidirectional communication between 
+MCP clients and servers. This standardized approach ensures interoperability 
+across different programming languages and platforms, supports both synchronous 
+requests and asynchronous notifications, handles batch operations efficiently, 
+and provides robust error handling with standardized error codes, making it 
+ideal for MCP's tool invocation system where AI agents need to reliably call 
+external functions and receive structured responses over various transport 
+layers like stdio, HTTP, or WebSocket.
+
+
+JSON-RPC 2.0 Examples in MCP
+
+Request (Client → Server):
+```
+json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "search_documents",
+    "arguments": {
+      "query": "machine learning",
+      "limit": 5
+    }
+  },
+  "id": 1
+}
+```
+
+Success Response (Server → Client):
+```
+json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Found 5 documents matching 'machine learning'"
+      }
+    ]
+  },
+  "id": 1
+}
+```
+
+Error Response (Server → Client):
+```
+json
+{
+  "jsonrpc": "2.0",
+  "error": {
+    "code": -32602,
+    "message": "Invalid params",
+    "data": "Missing required parameter 'query'"
+  },
+  "id": 1
+}
+```
+
+Notification (No Response Expected):
+```
+json
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/initialized",
+  "params": {
+    "protocolVersion": "2024-11-05",
+    "capabilities": {}
+  }
+}
+```
+
 ## Files
 
 - `mcp_server.py` - Standard MCP server with sample tools
@@ -344,21 +464,7 @@ python test_summary.py
 
 Expected result: **8/8 implementations working**
 
-## Architecture
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   AI Framework  │    │   MCP Client    │    │   MCP Server    │
-│   (AutoGen,     │◄──►│   (Adapter)     │◄──►│   (Tools)       │
-│   LlamaIndex,   │    │                 │    │                 │
-│   etc.)         │    │                 │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
-
-Each client converts MCP tools to framework-specific formats:
-- MCP Server provides tools via stdio protocol
-- Clients wrap MCP tools in framework-native abstractions  
-- Agents use converted tools for task execution
 
 ## Dependencies
 
