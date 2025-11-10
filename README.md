@@ -427,16 +427,16 @@ def search_documents(query: str, limit: int = 10) -> str:
 
 ## Framework Integration Details
 
-| Framework | Integration Type | LLM Provider | Key Features |
-|-----------|------------------|--------------|--------------|
-| **Basic MCP** | Direct MCP calls | None | Pure MCP functionality |
-| **AutoGen** | ConversableAgent | None | Multi-agent conversations |
-| **LlamaIndex** | BaseTool + ReActAgent | Claude | RAG and reasoning |
-| **Strands** | Agent + Tool | None | Structured agent workflows |
-| **CrewAI** | Agent + Task + Crew | None | Team-based task execution |
-| **LangChain** | BaseTool + Agent | Claude | Function calling agents |
-| **LangGraph** | StateGraph | None | Stateful workflow graphs |
-| **Bedrock** | ChatBedrock | Claude on AWS | AWS-native LLM integration |
+| Framework | Integration Type | Key Features |
+|-----------|------------------|--------------|
+| **Basic MCP** | Direct MCP calls | Pure MCP functionality - direct tool calls |
+| **AutoGen** | ConversableAgent | Multi-agent conversations |
+| **LlamaIndex** | BaseTool + ReActAgent | RAG and reasoning |
+| **Strands** | Agent + Tool | Structured agent workflows |
+| **CrewAI** | Agent + Task + Crew | Team-based task execution |
+| **LangChain** | BaseTool + Agent | Function calling agents |
+| **LangGraph** | StateGraph | Stateful workflow graphs |
+| **Bedrock** | ChatBedrock | AWS-native LLM integration |
 
 ## Available MCP Tools
 
