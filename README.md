@@ -248,6 +248,62 @@ def search_documents(query: str, limit: int = 10) -> str:
     return f"Found {limit} documents matching '{query}'"
 ```
 
+## Agentic Frameworks Comparison
+
+| Framework | Type | Key Strengths | Best Use Cases | Learning Curve | Community | LLM Support |
+|-----------|------|---------------|----------------|----------------|-----------|-------------|
+| **AutoGen** | Multi-Agent | Conversation-driven agents, role-based interactions | Complex multi-agent workflows, collaborative problem solving | Medium | Large (Microsoft) | OpenAI, Azure, Custom |
+| **LlamaIndex** | RAG-Focused | Document indexing, retrieval augmentation, query engines | Knowledge-intensive applications, document Q&A, RAG systems | Medium | Large | OpenAI, Anthropic, Local models |
+| **Strands** | Structured | Type-safe agents, structured workflows, enterprise-ready | Production applications, structured data processing | Low | Growing (AWS) | Claude, Bedrock, Custom |
+| **CrewAI** | Team-Based | Role-based agents, hierarchical task delegation, crew coordination | Business process automation, team simulations | Medium | Medium | OpenAI, Anthropic, Local models |
+| **LangChain** | General Purpose | Extensive ecosystem, chains, memory, tool integration | Rapid prototyping, diverse AI applications, tool orchestration | High | Very Large | All major providers |
+| **LangGraph** | Workflow | State machines, conditional flows, complex routing | Complex decision trees, stateful workflows, process automation | High | Medium (LangChain) | All LangChain supported |
+
+### Detailed Comparison
+
+#### **AutoGen**
+- **Pros**: Natural conversation flows, easy multi-agent setup, Microsoft backing
+- **Cons**: Limited to conversation patterns, requires careful prompt engineering
+- **Best For**: Customer service bots, collaborative AI assistants, educational tools
+
+#### **LlamaIndex** 
+- **Pros**: Excellent RAG capabilities, document processing, query optimization
+- **Cons**: Primarily document-focused, less flexible for general agent tasks
+- **Best For**: Knowledge bases, document analysis, research assistants
+
+#### **Strands**
+- **Pros**: Type safety, AWS integration, enterprise features, structured approach
+- **Cons**: Newer ecosystem, fewer community resources
+- **Best For**: Production systems, AWS environments, enterprise applications
+
+#### **CrewAI**
+- **Pros**: Intuitive team metaphors, role-based design, task delegation
+- **Cons**: Relatively new, smaller ecosystem, limited advanced features
+- **Best For**: Business workflows, team simulations, hierarchical task processing
+
+#### **LangChain**
+- **Pros**: Massive ecosystem, extensive integrations, flexible architecture
+- **Cons**: Complex API, frequent changes, steep learning curve
+- **Best For**: Complex AI applications, research projects, custom integrations
+
+#### **LangGraph**
+- **Pros**: Powerful state management, visual workflows, conditional logic
+- **Cons**: Complex setup, requires LangChain knowledge, newer framework
+- **Best For**: Complex decision processes, stateful applications, workflow automation
+
+### Framework Selection Guide
+
+| Use Case | Recommended Framework | Alternative |
+|----------|----------------------|-------------|
+| **Document Q&A** | LlamaIndex | LangChain |
+| **Multi-Agent Chat** | AutoGen | CrewAI |
+| **Business Process** | CrewAI | Strands |
+| **Enterprise Production** | Strands | LangChain |
+| **Research/Prototyping** | LangChain | AutoGen |
+| **Complex Workflows** | LangGraph | LangChain |
+| **AWS Integration** | Strands | LangChain + Bedrock |
+| **Rapid Development** | AutoGen | CrewAI |
+
 ## Framework Integration Details
 
 | Framework | Integration Type | LLM Provider | Key Features |
