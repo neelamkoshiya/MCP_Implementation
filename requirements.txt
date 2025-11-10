@@ -1,0 +1,15 @@
+# Core MCP
+mcp>=0.1.0
+
+# Framework dependencies (install as needed)
+# autogen-agentchat>=0.2.0
+# llama-index>=0.10.0
+# llama-index-llms-openai>=0.1.0
+# crewai>=0.28.0
+# langchain>=0.1.0
+# langchain-openai>=0.1.0
+# langgraph>=0.1.0
+
+# Common dependencies
+openai>=1.0.0
+asyncio
