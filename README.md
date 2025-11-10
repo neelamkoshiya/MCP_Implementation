@@ -304,7 +304,7 @@ export AWS_SECRET_ACCESS_KEY="your-secret-key"
 export AWS_DEFAULT_REGION="us-east-1"
 ```
 
-## MCP vs FastMCP
+## Standard MCP vs FastMCP server
 
 **Standard MCP Server:**
 ```python
