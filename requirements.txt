@@ -4,33 +4,30 @@ fastmcp>=2.1.0
 
 # LLM Providers
 anthropic>=0.72.0
+openai>=1.109.1
 boto3>=1.40.0
 botocore>=1.40.0
 
-# AI Agent Frameworks
+# AI Agent Frameworks with Official MCP Extensions
 autogen-agentchat>=0.7.5
+autogen-ext[mcp]>=0.7.5  # Official AutoGen MCP extension
 llama-index>=0.14.7
 llama-index-core>=0.14.7
 llama-index-llms-anthropic>=0.10.1
 llama-index-llms-openai>=0.6.7
-crewai>=1.4.1
+crewai>=1.4.1  # Built-in MCP support
 langchain>=1.0.5
 langchain-core>=1.0.4
 langchain-anthropic>=1.0.2
 langchain-aws>=1.0.0
 langgraph>=1.0.2
+strands-agents>=0.1.0  # Official Strands MCP support
 
 # Supporting Libraries
-openai>=1.109.1
 pydantic>=2.12.4
 pydantic-core>=2.41.5
 pydantic-settings>=2.11.0
 httpx>=0.28.1
 aiohttp>=3.13.2
-asyncio
 requests>=2.32.3
 typing-extensions>=4.14.1
-
-# Optional Framework Dependencies
-# Uncomment as needed for specific frameworks
-# strands-agents>=0.1.0  # Not publicly available yet

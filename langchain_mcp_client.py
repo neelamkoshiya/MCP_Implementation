@@ -1,100 +1,50 @@
 import asyncio
-from typing import Dict, Any, List, Optional
 try:
-    from mcp import ClientSession, StdioServerParameters
-    from mcp.client.stdio import stdio_client
-    from langchain.tools import BaseTool
+    from langchain_mcp_adapters.client import MultiServerMCPClient
+    from langchain.agents import create_agent
     from langchain_anthropic import ChatAnthropic
+    print("LangChain MCP adapter loaded successfully")
 except ImportError as e:
-    print(f"Missing dependency: {e}")
-    print("Install with: pip install mcp langchain langchain-anthropic")
+    print(f"Missing LangChain MCP: {e}")
+    print("Install with: pip install langchain langchain-mcp-adapters langchain-anthropic")
     exit(1)
 
-class MCPLangChainTool(BaseTool):
-    name: str
-    description: str
-    
-    def __init__(self, tool_name: str, description: str, session):
-        super().__init__(name=tool_name, description=description)
-        self._tool_name = tool_name
-        self._session = session
-    
-    def _run(self, **kwargs) -> str:
-        loop = asyncio.get_event_loop()
-        return loop.run_until_complete(self._async_run(**kwargs))
-    
-    async def _async_run(self, **kwargs) -> str:
-        result = await self._session.call_tool(self._tool_name, kwargs)
-        return result.content[0].text if result.content else ""
-
 class LangChainMCPClient:
-    def __init__(self, server_command: List[str]):
+    def __init__(self, server_command: list[str]):
         self.server_command = server_command
-        self.session = None
-        self.tools = []
-        self.llm = None
+        self.mcp_client = None
+        self.agent = None
     
     async def connect(self):
-        server_params = StdioServerParameters(
-            command="python",
-            args=["mcp_server.py"]
-        )
+        """Connect to MCP server using official LangChain MCP adapter"""
+        # Create MCP client
+        self.mcp_client = MultiServerMCPClient({
+            "server1": {
+                "transport": "stdio",
+                "command": self.server_command[0],
+                "args": self.server_command[1:]
+            }
+        })
         
-        async with stdio_client(server_params) as (read_stream, write_stream):
-            async with ClientSession(read_stream, write_stream) as session:
-                await session.initialize()
-                
-                # Get available tools
-                tools_response = await session.list_tools()
-                
-                # Create LangChain tools from MCP tools
-                for tool in tools_response.tools:
-                    lc_tool = MCPLangChainTool(
-                        tool_name=tool.name,
-                        description=tool.description,
-                        session=session
-                    )
-                    self.tools.append(lc_tool)
-                
-                # Create LangChain LLM
-                try:
-                    self.llm = ChatAnthropic(model="claude-3-sonnet-20240229")
-                except Exception:
-                    print("Anthropic API key not set. Set ANTHROPIC_API_KEY environment variable.")
-                
-                # Test direct tool usage
-                print("Testing LangChain MCP integration...")
-                
-                # Test weather tool
-                weather_result = await session.call_tool("get_weather", {"location": "Paris"})
-                print(f"Weather result: {weather_result.content[0].text}")
-                
-                # Test search tool
-                search_result = await session.call_tool("search_documents", {"query": "neural networks", "limit": 4})
-                print(f"Search result: {search_result.content[0].text}")
-                
-                print("✓ LangChain MCP integration working!")
+        # Get MCP tools
+        tools = await self.mcp_client.get_tools()
+        
+        # Create LangChain agent with MCP tools
+        try:
+            llm = ChatAnthropic(model="claude-3-sonnet-20240229")
+            self.agent = create_agent(llm, tools)
+        except Exception as e:
+            print(f"LLM setup failed: {e}. Set ANTHROPIC_API_KEY environment variable.")
+        
+        print("LangChain MCP integration initialized")
     
     async def invoke(self, message: str) -> str:
-        if not self.session:
-            raise RuntimeError("Client not connected. Call connect() first.")
+        """Invoke the agent with MCP tools"""
+        if not self.agent:
+            return f"Processed: {message} (no LLM configured)"
         
-        # Simple tool routing for demo
-        if "weather" in message.lower():
-            result = await self.session.call_tool("get_weather", {"location": "Paris"})
-            return result.content[0].text if result.content else ""
-        elif "search" in message.lower() or "document" in message.lower():
-            result = await self.session.call_tool("search_documents", {"query": "neural networks", "limit": 4})
-            return result.content[0].text if result.content else ""
-        
-        return f"Processed: {message}"
-    
-    async def search_documents(self, query: str, limit: int = 10) -> str:
-        result = await self.session.call_tool("search_documents", {
-            "query": query,
-            "limit": limit
-        })
-        return result.content[0].text if result.content else ""
+        result = await self.agent.ainvoke({"input": message})
+        return result["output"]
 
 # Example usage
 async def main():

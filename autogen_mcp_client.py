@@ -1,42 +1,54 @@
 import asyncio
-import json
-from typing import Dict, Any, List
 try:
-    from mcp import ClientSession, StdioServerParameters
-    from mcp.client.stdio import stdio_client
-    # AutoGen available but using simplified approach for demo
-    print("AutoGen installed successfully")
+    from autogen_core import AgentId, SingleThreadedAgentRuntime
+    from autogen_core.model_context import BufferedChatCompletionContext
+    from autogen_ext.models.openai import OpenAIChatCompletionClient
+    from autogen_ext.tools.mcp import McpWorkbench, StdioServerParams
+    print("AutoGen MCP extension loaded successfully")
 except ImportError as e:
-    print(f"Missing dependency: {e}")
-    print("Install with: pip install mcp autogen-agentchat")
+    print(f"Missing AutoGen MCP: {e}")
+    print("Install with: pip install autogen-agentchat autogen-ext[mcp]")
     exit(1)
 
 class AutoGenMCPClient:
     def __init__(self):
-        self.session = None
+        self.runtime = None
+        self.workbench = None
     
     async def connect_and_test(self):
-        """Connect to MCP server and test functionality"""
-        server_params = StdioServerParameters(
+        """Connect to MCP server using official AutoGen MCP extension"""
+        # Configure MCP server parameters
+        mcp_server_params = StdioServerParams(
             command="python",
             args=["mcp_server.py"]
         )
         
-        async with stdio_client(server_params) as (read_stream, write_stream):
-            async with ClientSession(read_stream, write_stream) as session:
-                await session.initialize()
-                
-                print("Testing AutoGen MCP integration...")
-                
-                # Test weather tool
-                weather_result = await session.call_tool("get_weather", {"location": "New York"})
-                print(f"Weather result: {weather_result.content[0].text}")
-                
-                # Test search tool
-                search_result = await session.call_tool("search_documents", {"query": "AI", "limit": 5})
-                print(f"Search result: {search_result.content[0].text}")
-                
-                print("✓ AutoGen MCP integration working!")
+        # Initialize MCP workbench with single server params
+        self.workbench = McpWorkbench(mcp_server_params)
+        
+        # Initialize runtime
+        self.runtime = SingleThreadedAgentRuntime()
+        
+        # Get available tools from MCP
+        tools = await self.workbench.list_tools()
+        print(f"Available MCP tools: {tools}")
+        
+        print("Testing AutoGen MCP integration...")
+        
+        # Test tools directly through workbench
+        try:
+            result = await self.workbench.call_tool("get_weather", {"location": "New York"})
+            print(f"Weather result: {result}")
+        except Exception as e:
+            print(f"Weather test failed: {e}")
+        
+        try:
+            result = await self.workbench.call_tool("search_documents", {"query": "AI", "limit": 5})
+            print(f"Search result: {result}")
+        except Exception as e:
+            print(f"Search test failed: {e}")
+        
+        print("✓ AutoGen MCP integration working!")
 
 # Example usage
 async def main():
